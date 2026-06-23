@@ -193,7 +193,7 @@ def create_public_pr_structure(pr_dir):
         "buggy",
         "generated/claude",
         "generated/gemini",
-        "generated/copilot",
+        "generated/codex",
         "prompts",
         "reports",
         "scripts",
@@ -300,7 +300,7 @@ def main():
 
             # ------------------------------------------------------------
             # LLM-SAFE METADATA
-            # This file is safe to expose to GPT/Claude/Gemini/Copilot.
+            # This file is safe to expose to GPT/Claude/Gemini/Codex.
             # It does NOT contain head.sha, fixed commit, fixed path,
             # developer patch, or merge commit.
             # ------------------------------------------------------------
