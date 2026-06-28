@@ -29,9 +29,12 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 from typing import List, Optional
-
+import re
 import pandas as pd
 import matplotlib.pyplot as plt
+import argparse
+from pathlib import Path
+from typing import List, Optional
 
 
 # =============================================================================
@@ -91,7 +94,141 @@ def clean_agent_order(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
     df["agent"] = pd.Categorical(df["agent"], categories=order, ordered=True)
     return df.sort_values("agent")
+def normalize_pr_id_for_merge(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Makes PR id values consistent before merging CSV files.
 
+    This handles cases where one file stores PR ids as 12345 and another
+    stores them as "12345" or "12345.0".
+    """
+
+    if df.empty:
+        return df
+
+    df = df.copy()
+
+    if "pr_id" not in df.columns:
+        if "PR Id" in df.columns:
+            df = df.rename(columns={"PR Id": "pr_id"})
+        elif "PR ID" in df.columns:
+            df = df.rename(columns={"PR ID": "pr_id"})
+
+    if "pr_id" in df.columns:
+        df["pr_id"] = (
+            df["pr_id"]
+            .astype(str)
+            .str.strip()
+            .str.replace(r"\.0$", "", regex=True)
+        )
+
+    return df
+
+
+def load_sampled_metadata(report_dir: Path) -> pd.DataFrame:
+    """
+    Loads sampled_prs.csv and keeps metadata columns useful for category-wise charts.
+
+    Your sampled_prs.csv columns:
+      PR Id
+      PR Link
+      Issue Summary
+      Issue type
+      Broader issue type
+      Detailed Code Change Description
+      User Demographic
+      app
+
+    For issue-type-wise analysis, this function intentionally uses:
+      Broader issue type
+
+    It ignores:
+      Issue type
+    """
+
+    candidates = [
+        report_dir / "sampled_prs.csv",
+        Path("sampled_prs.csv"),
+    ]
+
+    metadata = pd.DataFrame()
+
+    for path in candidates:
+        if path.exists():
+            print(f"Reading metadata from: {path}")
+            metadata = pd.read_csv(path)
+            break
+
+    if metadata.empty:
+        print("No sampled_prs.csv found. App-wise, demographic-wise, and issue-type-wise charts will be skipped.")
+        return metadata
+
+    # Very important: remove accidental spaces/tabs around column names.
+    metadata.columns = metadata.columns.astype(str).str.strip()
+
+    # Normalize PR id column.
+    if "PR Id" in metadata.columns:
+        metadata = metadata.rename(columns={"PR Id": "pr_id"})
+    elif "PR ID" in metadata.columns:
+        metadata = metadata.rename(columns={"PR ID": "pr_id"})
+    elif "pr_id" not in metadata.columns:
+        print("sampled_prs.csv does not have PR Id column.")
+        return pd.DataFrame()
+
+    metadata["pr_id"] = (
+        metadata["pr_id"]
+        .astype(str)
+        .str.strip()
+        .str.replace(r"\.0$", "", regex=True)
+    )
+
+    # Normalize app column.
+    if "app" not in metadata.columns and "App" in metadata.columns:
+        metadata = metadata.rename(columns={"App": "app"})
+
+    # Normalize user demographic column.
+    if "User Demographic" in metadata.columns:
+        metadata = metadata.rename(columns={"User Demographic": "user_demographic"})
+    elif "User demographic" in metadata.columns:
+        metadata = metadata.rename(columns={"User demographic": "user_demographic"})
+
+    # IMPORTANT:
+    # Use Broader issue type for issue-type-wise analysis.
+    # Do NOT use Issue type here.
+    if "Broader issue type" in metadata.columns:
+        metadata = metadata.rename(columns={"Broader issue type": "issue_type"})
+    elif "Broader Issue Type" in metadata.columns:
+        metadata = metadata.rename(columns={"Broader Issue Type": "issue_type"})
+    else:
+        print("No Broader issue type column found. Issue-type-wise chart will be skipped.")
+
+    keep_cols = ["pr_id", "app", "user_demographic", "issue_type"]
+    keep_cols = [col for col in keep_cols if col in metadata.columns]
+
+    metadata = metadata[keep_cols].drop_duplicates()
+
+    return metadata
+
+
+def split_multilabel(value) -> list[str]:
+    """
+    Splits multi-label fields such as:
+      visual impairments, motor impairments
+
+    into:
+      ["visual impairments", "motor impairments"]
+    """
+
+    if pd.isna(value):
+        return []
+
+    text = str(value).strip()
+
+    if not text:
+        return []
+
+    parts = re.split(r"[,;|]", text)
+
+    return [part.strip() for part in parts if part.strip()]
 
 # =============================================================================
 # Chart 1: Median LOC churn by source
@@ -514,7 +651,212 @@ def chart_flagged_patches_by_churn_ratio(agent_vs_dev: pd.DataFrame, out_dir: Pa
     save_current_fig(out_path)
     return out_path
 
+# =============================================================================
+# Chart 11: App-wise patch counts
+# =============================================================================
 
+def chart_app_wise_fixes(patch_metrics: pd.DataFrame, out_dir: Path, top_n: int = 25) -> Optional[Path]:
+    """
+    Shows how many developer, Claude, and Codex patches exist for each app.
+
+    Important:
+    This is a patch-count chart, not a fix-success chart.
+    """
+
+    required = {"app", "source", "pr_id"}
+    if not required.issubset(patch_metrics.columns):
+        print("Skipping app-wise chart: missing app/source/pr_id columns.")
+        return None
+
+    df = patch_metrics.dropna(subset=["app", "source", "pr_id"]).copy()
+
+    if "patch_found" in df.columns:
+        df = df[df["patch_found"] == True]
+
+    if df.empty:
+        return None
+
+    counts = (
+        df.groupby(["app", "source"])["pr_id"]
+        .nunique()
+        .reset_index(name="patch_count")
+    )
+
+    top_apps = (
+        counts.groupby("app")["patch_count"]
+        .sum()
+        .sort_values(ascending=False)
+        .head(top_n)
+        .index
+    )
+
+    counts = counts[counts["app"].isin(top_apps)]
+
+    plot_df = (
+        counts.pivot(index="app", columns="source", values="patch_count")
+        .fillna(0)
+    )
+
+    for source in ["developer", "claude", "codex"]:
+        if source not in plot_df.columns:
+            plot_df[source] = 0
+
+    plot_df = plot_df[["developer", "claude", "codex"]]
+    plot_df = plot_df.loc[plot_df.sum(axis=1).sort_values().index]
+
+    ax = plot_df.plot(kind="barh", figsize=(10, max(5, 0.35 * len(plot_df))))
+    ax.set_title("App-wise patch counts by source")
+    ax.set_xlabel("Number of patches")
+    ax.set_ylabel("App")
+    ax.legend(["Developer", "Claude", "Codex"])
+
+    out_path = out_dir / "11_app_wise_patch_counts_by_source.png"
+    save_current_fig(out_path)
+    return out_path
+
+# =============================================================================
+# Chart 12: User-demographic-wise patch counts
+# =============================================================================
+
+def chart_demographic_wise_fixes(patch_metrics: pd.DataFrame, out_dir: Path) -> Optional[Path]:
+    """
+    Shows how many developer, Claude, and Codex patches exist for each affected user demographic.
+
+    Important:
+    This chart requires a user_demographic column after metadata merge.
+    This is a patch-count chart, not a fix-success chart.
+    """
+
+    required = {"user_demographic", "source", "pr_id"}
+    if not required.issubset(patch_metrics.columns):
+        print("Skipping demographic-wise chart: missing user_demographic/source/pr_id columns.")
+        return None
+
+    rows = []
+
+    for _, row in patch_metrics.iterrows():
+        demographics = split_multilabel(row.get("user_demographic"))
+
+        for demographic in demographics:
+            rows.append({
+                "user_demographic": demographic,
+                "source": row.get("source"),
+                "pr_id": row.get("pr_id"),
+                "patch_found": row.get("patch_found", True),
+            })
+
+    df = pd.DataFrame(rows)
+
+    if df.empty:
+        return None
+
+    if "patch_found" in df.columns:
+        df = df[df["patch_found"] == True]
+
+    counts = (
+        df.groupby(["user_demographic", "source"])["pr_id"]
+        .nunique()
+        .reset_index(name="patch_count")
+    )
+
+    plot_df = (
+        counts.pivot(index="user_demographic", columns="source", values="patch_count")
+        .fillna(0)
+    )
+
+    for source in ["developer", "claude", "codex"]:
+        if source not in plot_df.columns:
+            plot_df[source] = 0
+
+    plot_df = plot_df[["developer", "claude", "codex"]]
+    plot_df = plot_df.loc[plot_df.sum(axis=1).sort_values().index]
+
+    ax = plot_df.plot(kind="barh", figsize=(10, max(4.5, 0.45 * len(plot_df))))
+    ax.set_title("User-demographic-wise patch counts by source")
+    ax.set_xlabel("Number of patches")
+    ax.set_ylabel("User demographic")
+    ax.legend(["Developer", "Claude", "Codex"])
+
+    out_path = out_dir / "12_user_demographic_wise_patch_counts_by_source.png"
+    save_current_fig(out_path)
+    return out_path
+
+# =============================================================================
+# Chart 13: Issue-type-wise patch counts
+# =============================================================================
+
+def chart_issue_type_wise_fixes(patch_metrics: pd.DataFrame, out_dir: Path, top_n: int = 25) -> Optional[Path]:
+    """
+    Shows how many developer, Claude, and Codex patches exist for each issue type.
+
+    Important:
+    This chart requires an issue_type column after metadata merge.
+    This is a patch-count chart, not a fix-success chart.
+    """
+
+    required = {"issue_type", "source", "pr_id"}
+    if not required.issubset(patch_metrics.columns):
+        print("Skipping issue-type-wise chart: missing issue_type/source/pr_id columns.")
+        return None
+
+    rows = []
+
+    for _, row in patch_metrics.iterrows():
+        issue_types = split_multilabel(row.get("issue_type"))
+
+        for issue_type in issue_types:
+            rows.append({
+                "issue_type": issue_type,
+                "source": row.get("source"),
+                "pr_id": row.get("pr_id"),
+                "patch_found": row.get("patch_found", True),
+            })
+
+    df = pd.DataFrame(rows)
+
+    if df.empty:
+        return None
+
+    if "patch_found" in df.columns:
+        df = df[df["patch_found"] == True]
+
+    counts = (
+        df.groupby(["issue_type", "source"])["pr_id"]
+        .nunique()
+        .reset_index(name="patch_count")
+    )
+
+    top_issue_types = (
+        counts.groupby("issue_type")["patch_count"]
+        .sum()
+        .sort_values(ascending=False)
+        .head(top_n)
+        .index
+    )
+
+    counts = counts[counts["issue_type"].isin(top_issue_types)]
+
+    plot_df = (
+        counts.pivot(index="issue_type", columns="source", values="patch_count")
+        .fillna(0)
+    )
+
+    for source in ["developer", "claude", "codex"]:
+        if source not in plot_df.columns:
+            plot_df[source] = 0
+
+    plot_df = plot_df[["developer", "claude", "codex"]]
+    plot_df = plot_df.loc[plot_df.sum(axis=1).sort_values().index]
+
+    ax = plot_df.plot(kind="barh", figsize=(10, max(5, 0.38 * len(plot_df))))
+    ax.set_title("Issue-type-wise patch counts by source")
+    ax.set_xlabel("Number of patches")
+    ax.set_ylabel("Issue type")
+    ax.legend(["Developer", "Claude", "Codex"])
+
+    out_path = out_dir / "13_issue_type_wise_patch_counts_by_source.png"
+    save_current_fig(out_path)
+    return out_path
 # =============================================================================
 # Markdown index for charts
 # =============================================================================
@@ -537,6 +879,9 @@ def write_charts_index(out_dir: Path, chart_paths: List[Path]) -> None:
         "08_accessibility_signal_rate_by_source.png": "Shows how often patches add accessibility-related terms or API references.",
         "09_extra_files_distribution_by_agent.png": "Shows how many extra files agents touched beyond developer patches.",
         "10_flagged_patches_by_churn_ratio.png": "Ranks the most extreme patches by agent/developer churn ratio.",
+        "11_app_wise_patch_counts_by_source.png": "Shows how many developer, Claude, and Codex patches are available for each app.",
+        "12_user_demographic_wise_patch_counts_by_source.png": "Shows patch counts by affected user demographic.",
+        "13_issue_type_wise_patch_counts_by_source.png": "Shows patch counts by accessibility issue type.",
     }
 
     lines = ["# Static Diff Charts\n"]
@@ -581,6 +926,8 @@ def main() -> None:
 
     patch_metrics = read_csv_if_exists(report_dir / "patch_metrics.csv")
     agent_vs_dev = read_csv_if_exists(report_dir / "agent_vs_developer.csv")
+    
+    sampled_metadata = load_sampled_metadata(report_dir)
 
     if patch_metrics.empty and agent_vs_dev.empty:
         raise SystemExit("No usable CSV files found.")
@@ -642,6 +989,14 @@ def main() -> None:
         ],
     )
 
+    patch_metrics = normalize_pr_id_for_merge(patch_metrics)
+    agent_vs_dev = normalize_pr_id_for_merge(agent_vs_dev)
+    sampled_metadata = normalize_pr_id_for_merge(sampled_metadata)
+
+    if not sampled_metadata.empty and "pr_id" in sampled_metadata.columns:
+        patch_metrics = patch_metrics.merge(sampled_metadata, on="pr_id", how="left")
+        agent_vs_dev = agent_vs_dev.merge(sampled_metadata, on="pr_id", how="left")
+
     chart_paths: List[Path] = []
 
     chart_functions = [
@@ -655,7 +1010,10 @@ def main() -> None:
         lambda: chart_accessibility_signal_rate_by_source(patch_metrics, out_dir),
         lambda: chart_extra_files_distribution_by_agent(agent_vs_dev, out_dir),
         lambda: chart_flagged_patches_by_churn_ratio(agent_vs_dev, out_dir),
-    ]
+        lambda: chart_app_wise_fixes(patch_metrics, out_dir),
+        lambda: chart_demographic_wise_fixes(patch_metrics, out_dir),
+        lambda: chart_issue_type_wise_fixes(patch_metrics, out_dir),
+]
 
     for fn in chart_functions:
         path = fn()

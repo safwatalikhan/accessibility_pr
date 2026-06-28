@@ -1,0 +1,418 @@
+{
+  "risk_definitions": {
+    "safe": "Good candidates for sampling. Likely frontend, design-system, docs, demo, or component-library projects that should be easier to run locally.",
+    "yellow": "Usable but risky. May have old dependencies, monorepo complexity, API/backend assumptions, or extra setup.",
+    "red": "Avoid unless the PR is important. Likely needs a host platform, backend stack, credentials, mobile emulator, or complex environment.",
+    "dark_red": "Strongly avoid for local manual validation. Very large, native, deprecated, archived, or infrastructure-heavy projects."
+  },
+  "apps": {
+    "adaptlearning_adapt-contrib-matching": {
+      "url": "https://github.com/adaptlearning/adapt-contrib-matching",
+      "risk": "red",
+      "reason": "Adapt plugin; not standalone. Needs Adapt Framework host."
+    },
+    "ONSdigital_design-system": {
+      "url": "https://github.com/ONSdigital/design-system",
+      "risk": "safe",
+      "reason": "Design system/docs site; likely locally runnable."
+    },
+    "mavenlink_design-system": {
+      "url": "https://github.com/mavenlink/design-system",
+      "risk": "yellow",
+      "reason": "Design system, but likely older/deprecated dependency stack."
+    },
+    "topcoder-platform_community-app": {
+      "url": "https://github.com/topcoder-platform/community-app",
+      "risk": "red",
+      "reason": "Likely tied to Topcoder services, APIs, auth, or environment variables."
+    },
+    "mozilla_pdf.js": {
+      "url": "https://github.com/mozilla/pdf.js",
+      "risk": "yellow",
+      "reason": "Runnable, but large and specialized; may require project-specific build workflow."
+    },
+    "transloadit_uppy": {
+      "url": "https://github.com/transloadit/uppy",
+      "risk": "safe",
+      "reason": "Frontend/component library with examples; good candidate."
+    },
+    "Leaflet_Leaflet": {
+      "url": "https://github.com/Leaflet/Leaflet",
+      "risk": "safe",
+      "reason": "Frontend library with demos/debug pages; good candidate."
+    },
+    "alphagov_govuk-frontend": {
+      "url": "https://github.com/alphagov/govuk-frontend",
+      "risk": "safe",
+      "reason": "Frontend design system; good candidate."
+    },
+    "WebKit_WebKit": {
+      "url": "https://github.com/WebKit/WebKit",
+      "risk": "dark_red",
+      "reason": "Huge browser engine/native build; very unsuitable for quick local validation."
+    },
+    "adaptlearning_adapt-contrib-narrative": {
+      "url": "https://github.com/adaptlearning/adapt-contrib-narrative",
+      "risk": "red",
+      "reason": "Adapt plugin; not standalone. Needs Adapt Framework host."
+    },
+    "nextcloud_photos": {
+      "url": "https://github.com/nextcloud/photos",
+      "risk": "red",
+      "reason": "Nextcloud app; needs running Nextcloud server and app enablement."
+    },
+    "cds-snc_report-a-cybercrime": {
+      "url": "https://github.com/cds-snc/report-a-cybercrime",
+      "risk": "dark_red",
+      "reason": "Archived/old government service app; likely dependency and environment risk."
+    },
+    "wordpress-mobile_gutenberg-mobile": {
+      "url": "https://github.com/wordpress-mobile/gutenberg-mobile",
+      "risk": "dark_red",
+      "reason": "Mobile app; likely needs Android/iOS build environment or emulator."
+    },
+    "zooniverse_Panoptes-Front-End": {
+      "url": "https://github.com/zooniverse/Panoptes-Front-End",
+      "risk": "yellow",
+      "reason": "Frontend app, but may depend on Zooniverse APIs or older environment."
+    },
+    "react-dates_react-dates": {
+      "url": "https://github.com/react-dates/react-dates",
+      "risk": "yellow",
+      "reason": "Component library, but older dependency/Storybook stack possible."
+    },
+    "mdo_github-buttons": {
+      "url": "https://github.com/mdo/github-buttons",
+      "risk": "safe",
+      "reason": "Small frontend project; very good candidate."
+    },
+    "Automattic_wp-calypso": {
+      "url": "https://github.com/Automattic/wp-calypso",
+      "risk": "red",
+      "reason": "Large monorepo/client app; likely service/auth/API complexity."
+    },
+    "brave_browser-laptop": {
+      "url": "https://github.com/brave/browser-laptop",
+      "risk": "dark_red",
+      "reason": "Deprecated old browser app; likely very difficult to build and validate today."
+    },
+    "unl_wdntemplates": {
+      "url": "https://github.com/unl/wdntemplates",
+      "risk": "safe",
+      "reason": "Frontend template/design project; likely locally runnable."
+    },
+    "twbs_bootstrap": {
+      "url": "https://github.com/twbs/bootstrap",
+      "risk": "safe",
+      "reason": "Frontend framework with local docs/dev workflow; good candidate."
+    },
+    "adaptlearning_adapt_framework": {
+      "url": "https://github.com/adaptlearning/adapt_framework",
+      "risk": "yellow",
+      "reason": "Runnable host framework, useful if keeping Adapt plugin PRs."
+    },
+    "basecamp_trix": {
+      "url": "https://github.com/basecamp/trix",
+      "risk": "safe",
+      "reason": "Frontend editor library with demos/tests; good candidate."
+    },
+    "salesforce_design-system-react": {
+      "url": "https://github.com/salesforce/design-system-react",
+      "risk": "safe",
+      "reason": "React design-system component library; likely testable through examples/storybook."
+    },
+    "maplibre_maputnik": {
+      "url": "https://github.com/maplibre/maputnik",
+      "risk": "safe",
+      "reason": "Frontend web app; may need map/style data but generally manageable."
+    },
+    "zooniverse_front-end-monorepo": {
+      "url": "https://github.com/zooniverse/front-end-monorepo",
+      "risk": "yellow",
+      "reason": "Frontend monorepo; likely runnable but setup may be heavier."
+    },
+    "govau_design-system-site": {
+      "url": "https://github.com/govau/design-system-site",
+      "risk": "yellow",
+      "reason": "Design-system site, but archived/old dependency risk."
+    },
+    "ucfopen_Obojobo": {
+      "url": "https://github.com/ucfopen/Obojobo",
+      "risk": "dark_red",
+      "reason": "Educational platform with backend/database/container complexity."
+    },
+    "adaptlearning_adapt-contrib-hotgraphic": {
+      "url": "https://github.com/adaptlearning/adapt-contrib-hotgraphic",
+      "risk": "red",
+      "reason": "Adapt plugin; not standalone. Needs Adapt Framework host."
+    },
+    "DDDEastMidlandsLimited_dddem-web": {
+      "url": "https://github.com/DDDEastMidlandsLimited/dddem-web",
+      "risk": "safe",
+      "reason": "Likely small web/frontend project; reasonable candidate."
+    },
+    "teacherfund_TeacherFund_next": {
+      "url": "https://github.com/teacherfund/TeacherFund_next",
+      "risk": "yellow",
+      "reason": "Likely Next.js app; may need backend/API/environment variables."
+    },
+    "City-of-Helsinki_servicemap-ui": {
+      "url": "https://github.com/City-of-Helsinki/servicemap-ui",
+      "risk": "yellow",
+      "reason": "Frontend map/service app; likely API/data dependencies."
+    },
+    "cylc_cylc-ui": {
+      "url": "https://github.com/cylc/cylc-ui",
+      "risk": "safe",
+      "reason": "Frontend UI with mock/offline dev mode; good candidate."
+    },
+    "UKHSA-Internal_coronavirus-dashboard": {
+      "url": "https://github.com/UKHSA-Internal/coronavirus-dashboard",
+      "risk": "red",
+      "reason": "Dashboard app likely tied to API/backend services and project-specific setup."
+    },
+    "GoogleForCreators_web-stories-wp": {
+      "url": "https://github.com/GoogleForCreators/web-stories-wp",
+      "risk": "red",
+      "reason": "WordPress plugin; needs WordPress environment."
+    },
+    "CollaboraOnline_online": {
+      "url": "https://github.com/CollaboraOnline/online",
+      "risk": "dark_red",
+      "reason": "Large collaborative office suite; server/native/integration-heavy."
+    },
+    "dbt-labs_docs.getdbt.com": {
+      "url": "https://github.com/dbt-labs/docs.getdbt.com",
+      "risk": "yellow",
+      "reason": "Docs site; likely runnable but can have framework/version-specific setup."
+    },
+    "open-sdg_open-sdg": {
+      "url": "https://github.com/open-sdg/open-sdg",
+      "risk": "yellow",
+      "reason": "Static/data-driven site generator; may need data/configuration."
+    },
+    "COVID19Tracking_website": {
+      "url": "https://github.com/COVID19Tracking/website",
+      "risk": "yellow",
+      "reason": "Historical site; may have old dependencies or data assumptions."
+    },
+    "justeattakeaway_fozzie-components": {
+      "url": "https://github.com/justeattakeaway/fozzie-components",
+      "risk": "safe",
+      "reason": "Component library/design-system style project; likely manageable."
+    },
+    "scratchfoundation_scratch-gui": {
+      "url": "https://github.com/scratchfoundation/scratch-gui",
+      "risk": "yellow",
+      "reason": "Large frontend app; runnable but may be heavy."
+    },
+    "cds-snc_digital-canada-ca": {
+      "url": "https://github.com/cds-snc/digital-canada-ca",
+      "risk": "safe",
+      "reason": "Likely static/content frontend site; reasonable candidate."
+    },
+    "gordon-cs_gordon-360-ui": {
+      "url": "https://github.com/gordon-cs/gordon-360-ui",
+      "risk": "yellow",
+      "reason": "Frontend app, but may depend on campus APIs/auth/backend services."
+    },
+    "vakata_jstree": {
+      "url": "https://github.com/vakata/jstree",
+      "risk": "safe",
+      "reason": "Small jQuery plugin/demo project; good candidate."
+    },
+    "Refinitiv_refinitiv-ui": {
+      "url": "https://github.com/Refinitiv/refinitiv-ui",
+      "risk": "safe",
+      "reason": "Design-system/component library; likely manageable."
+    },
+    "ministryofjustice_moj-frontend": {
+      "url": "https://github.com/ministryofjustice/moj-frontend",
+      "risk": "safe",
+      "reason": "Frontend design system; good candidate."
+    },
+    "adaptlearning_adapt-contrib-accordion": {
+      "url": "https://github.com/adaptlearning/adapt-contrib-accordion",
+      "risk": "red",
+      "reason": "Adapt plugin; not standalone. Needs Adapt Framework host."
+    },
+    "adaptlearning_adapt-contrib-resources": {
+      "url": "https://github.com/adaptlearning/adapt-contrib-resources",
+      "risk": "red",
+      "reason": "Adapt plugin; not standalone. Needs Adapt Framework host."
+    },
+    "nextcloud_text": {
+      "url": "https://github.com/nextcloud/text",
+      "risk": "red",
+      "reason": "Nextcloud app; needs running Nextcloud server and app enablement."
+    },
+    "adaptlearning_adapt-contrib-tutor": {
+      "url": "https://github.com/adaptlearning/adapt-contrib-tutor",
+      "risk": "red",
+      "reason": "Adapt plugin; not standalone. Needs Adapt Framework host."
+    },
+    "adaptlearning_adapt-contrib-core": {
+      "url": "https://github.com/adaptlearning/adapt-contrib-core",
+      "risk": "red",
+      "reason": "Adapt plugin/core package; needs Adapt Framework host."
+    },
+    "nextcloud_spreed": {
+      "url": "https://github.com/nextcloud/spreed",
+      "risk": "red",
+      "reason": "Nextcloud app; needs running Nextcloud server and app enablement."
+    },
+    "nextcloud_viewer": {
+      "url": "https://github.com/nextcloud/viewer",
+      "risk": "red",
+      "reason": "Nextcloud app; needs running Nextcloud server and app enablement."
+    },
+    "nextcloud_activity": {
+      "url": "https://github.com/nextcloud/activity",
+      "risk": "red",
+      "reason": "Nextcloud app; needs running Nextcloud server and app enablement."
+    },
+    "nolanlawson_pinafore": {
+      "url": "https://github.com/nolanlawson/pinafore",
+      "risk": "yellow",
+      "reason": "Unmaintained/older frontend stack; may still run but risky."
+    },
+    "code-dot-org_code-dot-org": {
+      "url": "https://github.com/code-dot-org/code-dot-org",
+      "risk": "dark_red",
+      "reason": "Very large platform with complex app/server infrastructure."
+    },
+    "inveniosoftware_invenio-app-rdm": {
+      "url": "https://github.com/inveniosoftware/invenio-app-rdm",
+      "risk": "dark_red",
+      "reason": "Full repository platform with backend/search/database/service complexity."
+    },
+    "adaptlearning_adapt-contrib-media": {
+      "url": "https://github.com/adaptlearning/adapt-contrib-media",
+      "risk": "red",
+      "reason": "Adapt plugin; not standalone. Needs Adapt Framework host."
+    },
+    "cgkineo_adapt-hotgrid": {
+      "url": "https://github.com/cgkineo/adapt-hotgrid",
+      "risk": "red",
+      "reason": "Adapt plugin ecosystem; likely needs Adapt Framework host."
+    },
+    "dequelabs_cauldron": {
+      "url": "https://github.com/dequelabs/cauldron",
+      "risk": "safe",
+      "reason": "Component/design-system library; good candidate."
+    },
+    "trendmicro-frontend_tonic-ui": {
+      "url": "https://github.com/trendmicro-frontend/tonic-ui",
+      "risk": "safe",
+      "reason": "Component/design-system library; good candidate."
+    },
+    "adaptlearning_adapt-contrib-boxMenu": {
+      "url": "https://github.com/adaptlearning/adapt-contrib-boxMenu",
+      "risk": "red",
+      "reason": "Adapt plugin/menu; not standalone. Needs Adapt Framework host."
+    },
+    "adaptlearning_adapt-contrib-pageLevelProgress": {
+      "url": "https://github.com/adaptlearning/adapt-contrib-pageLevelProgress",
+      "risk": "red",
+      "reason": "Adapt plugin; not standalone. Needs Adapt Framework host."
+    },
+    "adaptlearning_adapt-contrib-slider": {
+      "url": "https://github.com/adaptlearning/adapt-contrib-slider",
+      "risk": "red",
+      "reason": "Adapt plugin; not standalone. Needs Adapt Framework host."
+    },
+    "adaptlearning_adapt-contrib-languagePicker": {
+      "url": "https://github.com/adaptlearning/adapt-contrib-languagePicker",
+      "risk": "red",
+      "reason": "Adapt plugin; not standalone. Needs Adapt Framework host."
+    },
+    "nextcloud_firstrunwizard": {
+      "url": "https://github.com/nextcloud/firstrunwizard",
+      "risk": "red",
+      "reason": "Nextcloud app; needs running Nextcloud server and app enablement."
+    },
+    "dhis2_ui": {
+      "url": "https://github.com/dhis2/ui",
+      "risk": "safe",
+      "reason": "UI/component library; likely manageable."
+    },
+    "inclusive-design_wecount.inclusivedesign.ca": {
+      "url": "https://github.com/inclusive-design/wecount.inclusivedesign.ca",
+      "risk": "safe",
+      "reason": "Likely frontend/site project; reasonable candidate."
+    },
+    "zotero_zotero": {
+      "url": "https://github.com/zotero/zotero",
+      "risk": "dark_red",
+      "reason": "Desktop app build with custom setup, Git LFS, and platform-specific build concerns."
+    },
+    "jquery_jquery-ui": {
+      "url": "https://github.com/jquery/jquery-ui",
+      "risk": "yellow",
+      "reason": "Older jQuery UI project; likely runnable but dependency/tooling age may be annoying."
+    },
+    "cryptpad_cryptpad": {
+      "url": "https://github.com/cryptpad/cryptpad",
+      "risk": "red",
+      "reason": "Full collaborative document server; heavier than frontend validation."
+    },
+    "usdigitalresponse_usdr-gost": {
+      "url": "https://github.com/usdigitalresponse/usdr-gost",
+      "risk": "dark_red",
+      "reason": "Archived full-stack app; likely dependency and backend setup risk."
+    },
+    "gympass_yoga": {
+      "url": "https://github.com/gympass/yoga",
+      "risk": "safe",
+      "reason": "Design-system/component library; good candidate."
+    },
+    "grommet_hpe-design-system": {
+      "url": "https://github.com/grommet/hpe-design-system",
+      "risk": "safe",
+      "reason": "Design-system project; likely manageable."
+    }
+  },
+  "recommended_sampling_priority": {
+    "first_choice": [
+      "mdo_github-buttons",
+      "Leaflet_Leaflet",
+      "twbs_bootstrap",
+      "alphagov_govuk-frontend",
+      "ONSdigital_design-system",
+      "unl_wdntemplates",
+      "basecamp_trix",
+      "transloadit_uppy",
+      "dequelabs_cauldron",
+      "trendmicro-frontend_tonic-ui",
+      "ministryofjustice_moj-frontend",
+      "vakata_jstree",
+      "gympass_yoga",
+      "grommet_hpe-design-system"
+    ],
+    "second_choice_if_needed": [
+      "mozilla_pdf.js",
+      "react-dates_react-dates",
+      "zooniverse_Panoptes-Front-End",
+      "zooniverse_front-end-monorepo",
+      "scratchfoundation_scratch-gui",
+      "teacherfund_TeacherFund_next",
+      "City-of-Helsinki_servicemap-ui",
+      "dbt-labs_docs.getdbt.com",
+      "open-sdg_open-sdg"
+    ],
+    "avoid_unless_clustered": [
+      "adaptlearning_*",
+      "nextcloud_*"
+    ],
+    "avoid_if_possible": [
+      "WebKit_WebKit",
+      "CollaboraOnline_online",
+      "code-dot-org_code-dot-org",
+      "wordpress-mobile_gutenberg-mobile",
+      "brave_browser-laptop",
+      "zotero_zotero",
+      "inveniosoftware_invenio-app-rdm",
+      "usdigitalresponse_usdr-gost"
+    ]
+  }
+}

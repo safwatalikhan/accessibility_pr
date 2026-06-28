@@ -31,7 +31,7 @@ CHARTS = [
         ),
         "question": "Which repair source tends to produce the smallest or largest patches?",
         "why_numbers_matter": (
-            "These numbers matter because smaller patches are usually easier to review and integrate. "
+            "smaller patches are usually easier to review and integrate. "
             "For the same accessibility issue, a much larger generated patch may indicate that the agent "
             "changed more code than necessary."
         ),
@@ -53,7 +53,7 @@ CHARTS = [
         ),
         "question": "Are larger patches common, or are they caused by a few extreme cases?",
         "why_numbers_matter": (
-            "These numbers matter because the median alone can hide unusual agent behavior. "
+            "the median alone can hide unusual agent behavior. "
             "A few very large generated patches may create extra review burden even when most generated patches are small."
         ),
         "how_to_read": (
@@ -74,7 +74,7 @@ CHARTS = [
         "metric": "This chart counts how many files were changed by each patch.",
         "question": "Do agents spread their fixes across more files than developers?",
         "why_numbers_matter": (
-            "These numbers matter because a fix that touches many files can be harder to review and may indicate "
+            "a fix that touches many files can be harder to review and may indicate "
             "that the agent did not localize the issue narrowly."
         ),
         "how_to_read": (
@@ -97,7 +97,7 @@ CHARTS = [
         ),
         "question": "Did the agent modify the same files as the developer?",
         "why_numbers_matter": (
-            "These numbers matter because file overlap is a static proxy for localization similarity. "
+            "file overlap is a static proxy for localization similarity. "
             "If an agent fixes the same issue but touches completely different files, that patch deserves closer inspection."
         ),
         "how_to_read": (
@@ -119,7 +119,7 @@ CHARTS = [
         ),
         "question": "How much larger or smaller are agent patches compared to the developer patch for the same pull request?",
         "why_numbers_matter": (
-            "These numbers matter because this is a paired comparison. Instead of comparing all patches globally, "
+            "this is a paired comparison. Instead of comparing all patches globally, "
             "it asks whether the agent changed more or less code than the developer for the exact same issue."
         ),
         "how_to_read": (
@@ -142,7 +142,7 @@ CHARTS = [
         ),
         "question": "How often did agents work in the same code region as the developer?",
         "why_numbers_matter": (
-            "These numbers matter because they separate exact file-level localization from broader module-level localization. "
+            "they separate exact file-level localization from broader module-level localization. "
             "An agent may miss the exact developer-touched file but still work in a nearby directory."
         ),
         "how_to_read": (
@@ -165,7 +165,7 @@ CHARTS = [
         ),
         "question": "How often did each agent produce patches that look broader than necessary?",
         "why_numbers_matter": (
-            "These numbers matter because over-modification can increase review burden even if the patch builds. "
+            "over-modification can increase review burden even if the patch builds. "
             "This metric helps identify patches that may require extra human inspection."
         ),
         "how_to_read": (
@@ -187,7 +187,7 @@ CHARTS = [
         ),
         "question": "Do patches explicitly modify accessibility-related code?",
         "why_numbers_matter": (
-            "These numbers matter because they help characterize the repair strategy. "
+            "they help characterize the repair strategy. "
             "Some fixes explicitly add accessibility attributes, while others fix accessibility through structure, styling, or behavior."
         ),
         "how_to_read": (
@@ -208,7 +208,7 @@ CHARTS = [
         ),
         "question": "How many additional files did agents modify beyond the developer patch?",
         "why_numbers_matter": (
-            "These numbers matter because extra files show how much the agent patch diverged from the developer patch. "
+            "extra files show how much the agent patch diverged from the developer patch. "
             "A few extra files may be harmless, but many extra files can indicate a broader or less localized repair."
         ),
         "how_to_read": (
@@ -221,7 +221,7 @@ CHARTS = [
         ),
         "paper_use": "Use this chart to explain patch divergence from developer fixes.",
     },
-    {
+        {
         "file": "10_flagged_patches_by_churn_ratio.png",
         "title": "10. Top flagged patches by agent-to-developer churn ratio",
         "metric": (
@@ -229,7 +229,7 @@ CHARTS = [
         ),
         "question": "Which specific pull request and agent pairs should be inspected first?",
         "why_numbers_matter": (
-            "These numbers matter because they identify the most extreme cases. "
+            "they identify the most extreme cases. "
             "These are useful candidates for qualitative examples in the paper."
         ),
         "how_to_read": (
@@ -240,6 +240,75 @@ CHARTS = [
             "or poor localization."
         ),
         "paper_use": "Use this chart to select representative examples for the discussion section.",
+    },
+    {
+        "file": "11_app_wise_patch_counts_by_source.png",
+        "title": "11. App-wise patch counts by source",
+        "metric": (
+            "This chart counts how many patches are available for each app, separated by patch source: "
+            "developer, Claude, and Codex."
+        ),
+        "question": "Are the analyzed patches evenly distributed across apps, or concentrated in a few apps?",
+        "why_numbers_matter": (
+            "app concentration can affect interpretation. "
+            "If many patches come from one app, the overall static-analysis results may partly reflect that app's structure."
+        ),
+        "how_to_read": (
+            "Each horizontal bar group represents one app. The bars show how many developer, Claude, and Codex patches "
+            "exist for that app."
+        ),
+        "look_for": (
+            "Look for apps with much higher counts than others. These apps may have a stronger influence on the overall results."
+        ),
+        "paper_use": (
+            "Use this chart to describe dataset coverage across apps. Do not use it as a correctness or success-rate chart."
+        ),
+    },
+    {
+        "file": "12_user_demographic_wise_patch_counts_by_source.png",
+        "title": "12. User-demographic-wise patch counts by source",
+        "metric": (
+            "This chart counts how many patches are associated with each affected user demographic, separated by patch source."
+        ),
+        "question": "Which user demographics are represented in the analyzed patches?",
+        "why_numbers_matter": (
+            "accessibility bugs affect different user groups. "
+            "This chart shows whether the repair evaluation covers multiple affected populations or is concentrated in one group."
+        ),
+        "how_to_read": (
+            "Each horizontal bar group represents one user demographic. The bars show how many developer, Claude, and Codex "
+            "patches are associated with that demographic."
+        ),
+        "look_for": (
+            "Look for user demographics with very low counts. Low-count categories should be interpreted cautiously."
+        ),
+        "paper_use": (
+            "Use this chart to describe demographic coverage of the repair benchmark. Do not treat it as a fix-success chart."
+        ),
+    },
+    {
+        "file": "13_issue_type_wise_patch_counts_by_source.png",
+        "title": "13. Issue-type-wise patch counts by source",
+        "metric": (
+            "This chart counts how many patches are associated with each broader accessibility issue type, separated by patch source."
+        ),
+        "question": "Which accessibility issue types are represented in the analyzed patches?",
+        "why_numbers_matter": (
+            "different accessibility issue types may require different repair strategies. "
+            "A model may perform differently on labeling issues, focus issues, keyboard-navigation issues, or screen-reader issues."
+        ),
+        "how_to_read": (
+            "Each horizontal bar group represents one broader issue type. The bars show how many developer, Claude, and Codex "
+            "patches are associated with that issue type."
+        ),
+        "look_for": (
+            "Look for issue types with high or low representation. High-count issue types may drive the overall trends, while "
+            "low-count issue types should be discussed carefully."
+        ),
+        "paper_use": (
+            "Use this chart to describe issue-type coverage. Since it uses broader issue types, it is better for paper-level analysis "
+            "than very fine-grained issue labels."
+        ),
     },
 ]
 
@@ -608,6 +677,26 @@ def auto_interpretation_for_chart(
             "The largest bars show where the agent changed many more lines than the developer for the same issue."
         )
 
+    if chart_file == "11_app_wise_patch_counts_by_source.png":
+        return (
+            "This chart is based on the app metadata merged from sampled_prs.csv. "
+            "It shows patch counts by app, not whether those patches successfully fixed the issue."
+        )
+
+    if chart_file == "12_user_demographic_wise_patch_counts_by_source.png":
+        return (
+            "This chart is based on the user demographic labels in sampled_prs.csv. "
+            "If a pull request has multiple demographics, it may contribute to more than one demographic category. "
+            "The chart shows coverage by affected user group, not repair success."
+        )
+
+    if chart_file == "13_issue_type_wise_patch_counts_by_source.png":
+        return (
+            "This chart is based on the Broader issue type column in sampled_prs.csv. "
+            "If a pull request has multiple broader issue types, it may contribute to more than one issue-type category. "
+            "The chart shows issue-type coverage, not repair success."
+        )
+
     return ""
 
 
@@ -627,7 +716,7 @@ def chart_section(chart: Dict[str, str], charts_dir: Path, report_dir: Path, src
       <h2>{esc(chart["title"])}</h2>
 
       <p class="why-before-numbers">
-        <strong>Why these numbers matter:</strong>
+        
         {esc(chart["why_numbers_matter"])}
       </p>
 

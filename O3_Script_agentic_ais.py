@@ -149,57 +149,113 @@ def get_changed_files(project_dir):
     return [line.strip() for line in output.splitlines() if line.strip()]
 
 
+# def make_agent_instruction(metadata, agent_name):
+#     issue_title = metadata.get("issue_title_github", "")
+#     issue_summary = metadata.get("issue_summary", "")
+#     issue_type = metadata.get("issue_type", "")
+#     user_demo = metadata.get("user_demographic", "")
+#     pr_link = metadata.get("pr_link", "")
+
+#     return f"""
+# # Accessibility Repair Task
+
+# You are working inside a buggy software project.
+
+# Your task is to find and fix the accessibility issue described below with the smallest reasonable code change.
+
+# ## Issue Information
+
+# GitHub PR link:
+# {pr_link}
+
+# Issue title:
+# {issue_title}
+
+# Issue summary:
+# {issue_summary}
+
+# Issue type:
+# {issue_type}
+
+# Affected user demographic:
+# {user_demo}
+
+# ## Rules
+
+# - Work only inside the current project folder.
+# - Inspect the codebase yourself to find the relevant files.
+# - Make the smallest reasonable code change that fixes the accessibility issue.
+# - Preserve existing behavior unless the accessibility fix requires a change.
+# - Do not rewrite unrelated code.
+# - Do not create a new project.
+# - Do not delete unrelated files.
+# - Do not modify dependency lockfiles unless absolutely necessary.
+# - Do not use external information about the human developer's fix.
+# - When done, leave the modified files in this working directory.
+
+# ## Expected Result
+
+# The final output should be a modified project folder containing your proposed repair.
+# A separate script will collect the patch using git diff after you finish.
+# """.strip()
+
+#Update June 27, 2026
+#Removed PR Link from the instruction to avoid leaking information about the human developer's fix.
 def make_agent_instruction(metadata, agent_name):
     issue_title = metadata.get("issue_title_github", "")
     issue_summary = metadata.get("issue_summary", "")
     issue_type = metadata.get("issue_type", "")
     user_demo = metadata.get("user_demographic", "")
-    pr_link = metadata.get("pr_link", "")
+
+    # Safe public metadata. Do NOT include PR link because it can leak the developer fix.
+    repo = metadata.get("repo", "") or metadata.get("app", "")
 
     return f"""
-# Accessibility Repair Task
+            # Accessibility Repair Task
 
-You are working inside a buggy software project.
+            You are working inside a buggy software project.
 
-Your task is to find and fix the accessibility issue described below with the smallest reasonable code change.
+            Your task is to find and fix the accessibility issue described below with the smallest reasonable code change.
 
-## Issue Information
+            ## Project Information
 
-GitHub PR link:
-{pr_link}
+            Repository:
+            {repo}
 
-Issue title:
-{issue_title}
+            ## Issue Information
 
-Issue summary:
-{issue_summary}
+            Issue title:
+            {issue_title}
 
-Issue type:
-{issue_type}
+            Issue summary:
+            {issue_summary}
 
-Affected user demographic:
-{user_demo}
+            Issue type:
+            {issue_type}
 
-## Rules
+            Affected user demographic:
+            {user_demo}
 
-- Work only inside the current project folder.
-- Inspect the codebase yourself to find the relevant files.
-- Make the smallest reasonable code change that fixes the accessibility issue.
-- Preserve existing behavior unless the accessibility fix requires a change.
-- Do not rewrite unrelated code.
-- Do not create a new project.
-- Do not delete unrelated files.
-- Do not modify dependency lockfiles unless absolutely necessary.
-- Do not use external information about the human developer's fix.
-- When done, leave the modified files in this working directory.
+            ## Rules
 
-## Expected Result
+            - Work only inside the current project folder.
+            - Inspect the codebase yourself to find the relevant files.
+            - Make the smallest reasonable code change that fixes the accessibility issue.
+            - Preserve existing behavior unless the accessibility fix requires a change.
+            - Do not rewrite unrelated code.
+            - Do not create a new project.
+            - Do not delete unrelated files.
+            - Do not modify dependency lockfiles unless absolutely necessary.
+            - Do not use external websites, GitHub pull requests, issue pages, commit history, or any information about the human developer's fix.
+            - Do not search online for the pull request, repository history, or expected patch.
+            - Use only the files available in the current buggy project folder and the issue information above.
+            - When done, leave the modified files in this working directory.
 
-The final output should be a modified project folder containing your proposed repair.
-A separate script will collect the patch using git diff after you finish.
-""".strip()
+            ## Expected Result
 
-
+            The final output should be a modified project folder containing your proposed repair.
+            A separate script will collect the patch using git diff after you finish.
+            """.strip()
 def prepare_attempt(pr_dir, model_name, attempt_name, overwrite=False):
     pr_dir = ensure_public_pr_dir(pr_dir)
 
@@ -372,6 +428,7 @@ def run_one_agent(
         exit_code=exit_code,
         agent_output=output,
     )
+
 
 
 def main():

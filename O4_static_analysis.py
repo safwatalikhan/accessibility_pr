@@ -7,7 +7,7 @@ Expected folder layout:
 developer_fixes/
   PR_{pr_id}.patch
 
-generated_22Jun2026/
+generated_27Jun2026/
   claude/
     PR_{pr_id}/
       something.patch
@@ -876,7 +876,7 @@ def write_markdown_report(
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--developer-dir", default="developer_fixes", help="Folder containing PR_{pr_id}.patch developer patches")
-    parser.add_argument("--generated-dir", default="generated_22Jun2026", help="Folder containing claude/ and codex/ patch outputs")
+    parser.add_argument("--generated-dir", default="generated_27Jun2026", help="Folder containing claude/ and codex/ patch outputs")
     parser.add_argument("--out-dir", default="static_diff_report", help="Output report folder")
     args = parser.parse_args()
 
