@@ -5,11 +5,11 @@ This repository contains the sampling, benchmark construction, and repair-genera
 ## Repository Components
 
 * **`O1_sampling_algorithm.ipynb`**
-  Samples **25 accessibility-related pull requests** from `master.csv` and writes the selected PRs to `sampled_prs.csv`.
+  Samples **50 accessibility-related pull requests** from `master.csv` and writes the selected PRs to `sampled_prs.csv`.
   The sampling process is described in detail under **Pull Request Sampling Strategy**.
 
 * **`O2_Create_Framework.py`**
-  Clones/downloads the **buggy** and **fixed** versions of all **25 sampled PRs** and organizes them into application-level and issue-level subfolders.
+  Clones/downloads the **buggy** and **fixed** versions of all **50 sampled PRs** and organizes them into application-level and issue-level subfolders.
   The benchmark organization is described in detail under **Benchmark Infrastructure**.
 
 * **`O3_Script_prompt_engineering.py`**
@@ -24,7 +24,7 @@ This repository contains the sampling, benchmark construction, and repair-genera
 
 ## Pull Request Sampling Strategy
 
-From a manually curated dataset of **300 accessibility-related pull requests**, we selected a sample of **25 PRs** for detailed analysis and repair evaluation. This step is implemented in **`O1_sampling_algorithm.ipynb`**, which reads the full dataset from **`master.csv`** and outputs the sampled PRs to **`sampled_prs.csv`**.
+From a manually curated dataset of **300 accessibility-related pull requests**, we selected a sample of **50 PRs** for detailed analysis and repair evaluation. This step is implemented in **`O1_sampling_algorithm.ipynb`**, which reads the full dataset from **`master.csv`** and outputs the sampled PRs to **`sampled_prs.csv`**.
 
 Each PR in the dataset may be associated with multiple **issue types** and multiple affected **user demographics**, while each PR belongs to a single application. Because of this multi-label structure, simple random sampling is not suitable for our goal. A random sample could overrepresent frequent issue categories while missing less common but technically important accessibility problems. Therefore, we use a **coverage-based sampling strategy** that prioritizes coverage across issue types and user demographics while controlling the number of applications included in the final sample.
 
@@ -38,7 +38,7 @@ The sampling algorithm processes each eligible PR and extracts three fields: the
 
 During sampling, we maintain three sets representing the issue types, user demographics, and applications already included in the sample. For each candidate PR, the algorithm checks whether it introduces at least one previously uncovered issue type or user demographic. PRs that contribute new issue or user coverage are prioritized for selection. Application count is handled as a constraint: when multiple PRs provide similar issue and user coverage, the algorithm prefers PRs from applications already represented in the sample. This reduces the number of distinct applications needed for evaluation without sacrificing the main coverage goals.
 
-After the coverage-driven selection step, if the sample contains fewer than **25 PRs**, the remaining slots are filled using additional eligible PRs from already selected applications whenever possible. This fill-up step ensures that the final sample reaches the target size of **25** while continuing to control the number of applications. If additional PRs from selected applications are insufficient, PRs from new applications are added only as needed to reach the target sample size.
+After the coverage-driven selection step, if the sample contains fewer than **50 PRs**, the remaining slots are filled using additional eligible PRs from already selected applications whenever possible. This fill-up step ensures that the final sample reaches the target size of **50** while continuing to control the number of applications. If additional PRs from selected applications are insufficient, PRs from new applications are added only as needed to reach the target sample size.
 
 Overall, this strategy produces a fixed-size sample that prioritizes coverage of accessibility issue types, maintains coverage of affected user demographics, and reduces the number of applications requiring experimental setup. This approach is appropriate for benchmark construction because the objective is not to estimate the population frequency of accessibility issues, but to create a manageable and well-covered set of real-world repair tasks for evaluating accessibility program repair.
 
@@ -46,7 +46,7 @@ Overall, this strategy produces a fixed-size sample that prioritizes coverage of
 
 ## Benchmark Infrastructure
 
-Following the sampling process, we construct a folder-based benchmark infrastructure to support repair evaluation on the selected PRs. This step is implemented in **`O2_Create_Framework.py`**, which processes the **25 sampled PRs**, retrieves their buggy and fixed versions, and organizes them into structured subfolders.
+Following the sampling process, we construct a folder-based benchmark infrastructure to support repair evaluation on the selected PRs. This step is implemented in **`O2_Create_Framework.py`**, which processes the **50 sampled PRs**, retrieves their buggy and fixed versions, and organizes them into structured subfolders.
 
 Since the sample contains multiple PRs from the same application, the infrastructure is organized first by application and then by issue. Each application is stored under an **`apps/`** directory using a folder name derived by concatenating the GitHub repository owner and repository name. Within each application folder, each sampled PR is stored as a separate issue directory named using its PR identifier. This structure allows multiple repair tasks from the same application to be grouped together while keeping each PR-level repair case separate.
 

@@ -7,7 +7,7 @@ Expected folder layout:
 developer_fixes/
   PR_{pr_id}.patch
 
-generated_27Jun2026/
+generated_29Jun2026/
   claude/
     PR_{pr_id}/
       something.patch
@@ -31,6 +31,7 @@ from __future__ import annotations
 import argparse
 import csv
 import re
+import os
 import statistics
 from dataclasses import dataclass, field, asdict
 from pathlib import Path
@@ -876,12 +877,13 @@ def write_markdown_report(
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--developer-dir", default="developer_fixes", help="Folder containing PR_{pr_id}.patch developer patches")
-    parser.add_argument("--generated-dir", default="generated_27Jun2026", help="Folder containing claude/ and codex/ patch outputs")
+    parser.add_argument("--generated-dir", default="generated_29Jun2026", help="Folder containing claude/ and codex/ patch outputs")
     parser.add_argument("--out-dir", default="static_diff_report", help="Output report folder")
     args = parser.parse_args()
 
     developer_dir = Path(args.developer_dir)
-    generated_dir = Path(args.generated_dir)
+    #generated_dir = Path(args.generated_dir)
+    generated_dir = Path([file for file in os.listdir() if "generated_" in file][0])
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
