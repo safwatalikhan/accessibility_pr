@@ -58,7 +58,7 @@ To construct the **buggy** version, the script starts from the same PR head and 
 
 After each buggy or fixed version is created, the script removes the **`.git`** directory from the checkout. This keeps the benchmark folders lightweight and avoids storing full Git history for every version. The resulting **`buggy/`** and **`fixed/`** folders contain only the source files needed for building, running, and validating the repair task.
 
-The **`generated/`** directory stores repair outputs from different repair approaches. For the current prompt-engineering workflow, outputs are separated by model provider, such as **Claude** and **OpenAI**, so that generated patches can be stored and compared independently. The **`reports/`** directory stores build results and manual validation outcomes. Overall, this infrastructure preserves each sampled PR as a reproducible app-issue repair workspace while keeping the storage and setup cost manageable for the full benchmark.
+The **generated** directory stores repair outputs from different repair approaches. For the current prompt-engineering workflow, outputs are separated by model provider, such as **Claude** and **OpenAI**, so that generated patches can be stored and compared independently. The **`reports/`** directory stores build results and manual validation outcomes. Overall, this infrastructure preserves each sampled PR as a reproducible app-issue repair workspace while keeping the storage and setup cost manageable for the full benchmark.
 ---
 
 ## Automatic Program Repair
