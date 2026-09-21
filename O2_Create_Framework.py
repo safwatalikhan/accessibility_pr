@@ -123,7 +123,7 @@ def checkout_pr_version(
         diff_bytes = _fetch_pr_diff(owner, repo, pr_number, token)
 
         # Write diff to a temp file so we avoid any stdin buffering issues
-        diff_file = target_dir.parent / f"pr_{pr_number}.diff"
+        diff_file = (target_dir.parent / f"pr_{pr_number}.diff").resolve()
         diff_file.write_bytes(diff_bytes)
 
         try:
@@ -160,7 +160,7 @@ def create_public_pr_structure(pr_dir: Path) -> None:
         "metadata",
         "buggy",
         "generated/claude",
-        "generated/gemini",
+        "generated/qwen",
         "generated/codex",
         "prompts",
         "reports",

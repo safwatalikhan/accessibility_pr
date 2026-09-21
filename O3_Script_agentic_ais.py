@@ -6,7 +6,28 @@ import subprocess
 from pathlib import Path
 from datetime import datetime
 import time
-
+##############################################################################################################
+# Before running the code, make sure you have the following API_KEYS set in your environment variables.
+#
+# To set these permanently (Linux, bash), run each line below in your terminal:
+#
+#   echo 'export ANTHROPIC_API_KEY="your_claude_api_key"' >> ~/.bashrc
+#   echo 'export OPENAI_API_KEY="your_codex_api_key"' >> ~/.bashrc
+#   echo 'export OPENROUTER_API_KEY="your_openrouter_key"' >> ~/.bashrc
+#   source ~/.bashrc
+#
+# If you run this script via cron or a non-interactive shell, ~/.bashrc will NOT be sourced —
+# set the variables explicitly in that context instead (e.g. in the crontab itself).
+#
+# export ANTHROPIC_API_KEY="your_claude_api_key"
+# export OPENAI_API_KEY="your_codex_api_key"
+# export OPENROUTER_API_KEY="your_openrouter_key"   # used for qwen, routed via OpenRouter
+#                                                          # NOTE: shared lab key with real spend
+#                                                          # and no per-key cap — use qwen/qwen3-coder:free
+#                                                          # for testing before switching to a paid model ID
+#
+# Verify with: echo $ANTHROPIC_API_KEY   (in a NEW terminal, to confirm it persisted)
+##############################################################################################################
 IGNORE_COPY_PATTERNS = [
     ".git",
     "node_modules",
@@ -31,9 +52,35 @@ FORBIDDEN_METADATA_KEYS = [
     "fixed_folder",
     "human_fix",
 ]
+def build_agent_env(model_name, qwen_model=None):
+    env = os.environ.copy()
 
+    if model_name == "claude":
+        key = os.environ.get("ANTHROPIC_API_KEY")
+        if not key:
+            raise RuntimeError("ANTHROPIC_API_KEY is not set.")
+        env["ANTHROPIC_API_KEY"] = key
 
-def run(cmd, cwd=None, capture=False, timeout=None):
+    elif model_name == "codex":
+        key = os.environ.get("OPENAI_API_KEY")
+        if not key:
+            raise RuntimeError("OPENAI_API_KEY is not set.")
+        env["OPENAI_API_KEY"] = key
+
+    elif model_name == "qwen":
+        key = os.environ.get("OPENROUTER_API_KEY")
+        if not key:
+            raise RuntimeError("OPENROUTER_API_KEY is not set.")
+        env["OPENAI_API_KEY"] = key
+        env["OPENAI_BASE_URL"] = "https://openrouter.ai/api/v1"
+        env["OPENAI_MODEL"] = qwen_model or "qwen/qwen3-coder"
+
+    else:
+        raise ValueError(f"Unsupported model: {model_name}")
+
+    return env
+
+def run(cmd, cwd=None, capture=False, timeout=None, env=None):
     print(f"\n$ {' '.join(cmd)}")
 
     if capture:
@@ -45,10 +92,11 @@ def run(cmd, cwd=None, capture=False, timeout=None):
             stderr=subprocess.STDOUT,
             check=False,
             timeout=timeout,
+            env=env
         )
         return result.returncode, result.stdout
 
-    subprocess.run(cmd, cwd=cwd, check=True, timeout=timeout)
+    subprocess.run(cmd, cwd=cwd, check=True, timeout=timeout, env=env)
 
 
 def read_json(path):
@@ -253,6 +301,7 @@ def prepare_attempt(pr_dir, model_name, attempt_name, overwrite=False):
 
 def run_claude_agent(context, claude_model=None, max_turns=None, timeout=None):
     attempt_dir = context["attempt_dir"]
+    env = build_agent_env("claude")
 
     cmd = [
         "claude",
@@ -270,12 +319,13 @@ def run_claude_agent(context, claude_model=None, max_turns=None, timeout=None):
     if max_turns:
         cmd.extend(["--max-turns", str(max_turns)])
 
-    code, output = run(cmd, cwd=attempt_dir, capture=True, timeout=timeout)
+    code, output = run(cmd, cwd=attempt_dir, capture=True, timeout=timeout, env=env)
     return code, output
 
 
 def run_codex_agent(context, codex_model=None, timeout=None):
     attempt_dir = context["attempt_dir"]
+    env = build_agent_env("codex")
 
     cmd = [
         "codex",
@@ -292,10 +342,21 @@ def run_codex_agent(context, codex_model=None, timeout=None):
     "Edit the project files directly."\
     )
 
-    code, output = run(cmd, cwd=attempt_dir, capture=True, timeout=timeout)
+    code, output = run(cmd, cwd=attempt_dir, capture=True, timeout=timeout, env=env)
     return code, output
 
+def run_qwen_agent(context, qwen_model=None, timeout=None):
+    attempt_dir = context["attempt_dir"]
+    env = build_agent_env("qwen", qwen_model=qwen_model)
 
+    cmd = [
+        "qwen", "-p",
+        "Read AGENT_TASK.md and complete the accessibility repair task. Edit the project files directly.",
+        "--yolo",
+    ]
+
+    code, output = run(cmd, cwd=attempt_dir, capture=True, timeout=timeout, env=env)
+    return code, output
 def save_agent_results(context, model_name, attempt_name, exit_code, agent_output):
     pr_dir = context["pr_dir"]
     attempt_dir = context["attempt_dir"]
@@ -344,6 +405,7 @@ def run_one_agent(
     overwrite=False,
     claude_model=None,
     codex_model=None,
+    qwen_model=None,
     claude_max_turns=None,
     timeout=None,
 ):
@@ -366,6 +428,13 @@ def run_one_agent(
         exit_code, output = run_codex_agent(
             context=context,
             codex_model=codex_model,
+            timeout=timeout,
+        )
+
+    elif model_name == "qwen":
+        exit_code, output = run_qwen_agent(
+            context=context,
+            qwen_model=qwen_model,
             timeout=timeout,
         )
 
@@ -395,7 +464,7 @@ def main():
         "--models",
         nargs="+",
         default=["claude", "codex"],
-        choices=["claude", "codex"],
+        choices=["claude", "codex", "qwen"],
         help="Agentic repair tools to run.",
     )
 
@@ -429,7 +498,11 @@ def main():
         default=None,
         help="Optional max number of Claude Code agentic turns.",
     )
-
+    parser.add_argument(
+        "--qwen-model",
+        default=None,
+        help="Optional OpenRouter model ID for qwen, e.g. qwen/qwen3-coder:free or qwen/qwen3-coder.",
+    )
     parser.add_argument(
         "--timeout",
         type=int,
@@ -453,6 +526,7 @@ def main():
             overwrite=args.overwrite,
             claude_model=args.claude_model,
             codex_model=args.codex_model,
+            qwen_model=args.qwen_model,
             claude_max_turns=args.claude_max_turns,
             timeout=args.timeout,
         )
